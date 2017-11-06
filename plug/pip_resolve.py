@@ -89,7 +89,7 @@ def get_requirements_list(requirements_file):
     required = [req.name.replace('_', '-') for req in req_list]
     return required
 
-def create_dependencies_tree_by_req_file_path(requirements_file_path):
+def create_dependencies_tree_by_req_file_path(requirements_file_path, options):
     # get all installed packages
     pkgs = pip.get_installed_distributions(local_only=False, skip=[])
 
@@ -99,13 +99,17 @@ def create_dependencies_tree_by_req_file_path(requirements_file_path):
     # get all installed distributions tree
     dist_tree = utils.construct_tree(dist_index)
 
+    # verify that all requirements are installed
+    verify_requirements = 'ignore-missing-packages' not in options
+
     # open the requirements.txt file and create dependencies tree out of it
     with open(requirements_file_path, 'r') as requirements_file:
         required = get_requirements_list(requirements_file)
         installed = [p for p in dist_index]
-        for r in required:
-            if r.lower() not in installed:
-                sys.exit('Required package missing: ' + r.lower())
+        if verify_requirements:
+            for r in required:
+                if r.lower() not in installed:
+                    sys.exit('Required package missing: ' + r.lower())
         package_tree = create_tree_of_packages_dependencies(
             dist_tree, required, requirements_file_path)
     print(json.dumps(package_tree))
@@ -114,4 +118,4 @@ def create_dependencies_tree_by_req_file_path(requirements_file_path):
 if __name__ == '__main__':
     if(not sys.argv[1]):
         print('Expecting requirements.txt Path An Argument')
-    sys.exit(create_dependencies_tree_by_req_file_path(sys.argv[1]))
+    sys.exit(create_dependencies_tree_by_req_file_path(sys.argv[1], sys.argv))

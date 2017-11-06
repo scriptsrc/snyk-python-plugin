@@ -88,6 +88,17 @@ test('deps not installed', function (t) {
   });
 });
 
+test('can `ignore-missing-packages`', function (t) {
+  chdirWorkspaces('pip-app-deps-not-installed');
+  return plugin.inspect('.', 'requirements.txt', {
+    args: ['ignore-missing-packages'],
+  })
+  .then(function (result) {
+    t.ok(result.plugin.name, 'plugin ok');
+    t.ok(result.package.dependencies, 'package ok');
+  });
+});
+
 test('uses provided exec command', function (t) {
   var command = 'echo';
   var execute = sinon.stub(subProcess, 'execute');
